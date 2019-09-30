@@ -1,0 +1,376 @@
+<html>
+    <head>
+        <title></title>
+    </head>
+    <body>
+        <h1>
+                Introducing container technologies
+        </h1>
+        <p>
+                In section 1.1 I presented a non-comprehensive list of problems facing today’s devel-
+                opment and ops teams. While you have many ways of dealing with them, this book will
+                focus on how they’re solved with Kubernetes.
+        </p>
+        <p>
+                Kubernetes uses Linux container technologies to provide isolation of running
+                applications, so before we dig into Kubernetes itself, you need to become familiar
+                with the basics of containers to understand what Kubernetes does itself, and what it
+                offloads to container technologies like Docker or rkt (pronounced “rock-it”).
+        </p>
+        <li><h2>Understanding what containers are</h2></li>
+        <p>
+                In section 1.1.1 we saw how different software components running on the same
+                machine will require different, possibly conflicting, versions of dependent libraries or
+                have other different environment requirements in general.
+        </p>
+        <p>
+                When an application is composed of only smaller numbers of large components,
+                it’s completely acceptable to give a dedicated Virtual Machine (VM) to each compo-
+                nent and isolate their environments by providing each of them with their own operat-
+                ing system instance. But when these components start getting smaller and their
+                numbers start to grow, you can’t give each of them their own VM if you don’t want to
+                waste hardware resources and keep your hardware costs down. But it’s not only about
+                wasting hardware resources. Because each VM usually needs to be configured and
+                managed individually, rising numbers of VMs also lead to wasting human resources,
+                because they increase the system administrators’ workload considerably.
+        </p>
+        <h3>
+                ISOLATING COMPONENTS WITH LINUX CONTAINER TECHNOLOGIES
+        </h3>
+        <p>
+                Instead of using virtual machines to isolate the environments of each microservice (or
+                software processes in general), developers are turning to Linux container technolo-
+                gies. They allow you to run multiple services on the same host machine, while not only
+                exposing a different environment to each of them, but also isolating them from each
+                other, similarly to VMs, but with much less overhead.
+        </p>
+        <p>
+                A process running in a container runs inside the host’s operating system, like all
+                the other processes (unlike VMs, where processes run in separate operating sys-
+                tems). But the process in the container is still isolated from other processes. To the
+                process itself, it looks like it’s the only one running on the machine and in its oper-
+                ating system.
+        </p>
+        <h3>
+                COMPARING VIRTUAL MACHINES TO CONTAINERS
+        </h3>
+        <p>
+                Compared to VMs, containers are much more lightweight, which allows you to run
+                higher numbers of software components on the same hardware, mainly because each
+                VM needs to run its own set of system processes, which requires additional compute
+                resources in addition to those consumed by the component’s own process. A con-
+                tainer, on the other hand, is nothing more than a single isolated process running in
+                the host OS, consuming only the resources that the app consumes and without the
+                overhead of any additional processes.
+        </p>
+        <p>
+                Because of the overhead of VMs, you often end up grouping multiple applications
+                into each VM because you don’t have enough resources to dedicate a whole VM to
+                each app. When using containers, you can (and should) have one container for each
+                application, as shown in figure 1.4. The end-result is that you can fit many more appli-
+                cations on the same bare-metal machine.
+        </p>
+        <figure>
+                <img/ src="" alt="Image to be put" title="Monolithic s Microserices based app">
+                <figcaption>Figure 1.4 Using VMs to isolate groups of applications vs. isolating individual apps with containers</figcaption>
+        </figure>
+        <br/>
+        <p>
+                When you run three VMs on a host, you have three completely separate operating sys-
+                tems running on and sharing the same bare-metal hardware. Underneath those VMs
+                is the host’s OS and a hypervisor, which divides the physical hardware resources into
+                smaller sets of virtual resources that can be used by the operating system inside each
+                VM. Applications running inside those VMs perform system calls to the guest OS’ ker-
+                nel in the VM, and the kernel then performs x86 instructions on the host’s physical
+                CPU through the hypervisor.
+        </p>
+        <div>
+                NOTE Two types of hypervisors exist. Type 1 hypervisors don’t use a host OS,
+                while Type 2 do.
+        </div>
+        <p>
+                Containers, on the other hand, all perform system calls on the exact same kernel run-
+                ning in the host OS. This single kernel is the only one performing x86 instructions on
+                the host’s CPU. The CPU doesn’t need to do any kind of virtualization the way it does
+                with VMs (see figure 1.5).
+        </p>
+        <p>
+                The main benefit of virtual machines is the full isolation they provide, because
+                each VM runs its own Linux kernel, while containers all call out to the same kernel,
+                which can clearly pose a security risk. If you have a limited amount of hardware
+                resources, VMs may only be an option when you have a small number of processes that
+                <figure>
+                        <img/ src="" alt="Image to be put" title="Monolithic s Microserices based app">
+                        <figcaption>Figure 1.5 The difference between
+                                how apps in VMs use the CPU vs. how
+                                they use them in containers</figcaption>
+                </figure>
+                you want to isolate. To run greater numbers of isolated processes on the same
+                machine, containers are a much better choice because of their low overhead. Remem-
+                ber, each VM runs its own set of system services, while containers don’t, because they
+                all run in the same OS. That also means that to run a container, nothing needs to be
+                booted up, as is the case in VMs. A process run in a container starts up immediately.
+        </p>
+        <h3>
+                INTRODUCING THE MECHANISMS THAT MAKE CONTAINER ISOLATION POSSIBLE
+        </h3>
+        <p>
+                By this point, you’re probably wondering how exactly containers can isolate processes
+                if they’re running on the same operating system. Two mechanisms make this possible.
+                The first one, Linux Namespaces, makes sure each process sees its own personal view of
+                the system (files, processes, network interfaces, hostname, and so on). The second
+                one is Linux Control Groups (cgroups), which limit the amount of resources the process
+                can consume (CPU, memory, network bandwidth, and so on).
+        </p>
+        <h3>
+                ISOLATING PROCESSES WITH LINUX N AMESPACES
+        </h3>
+        <p>
+                By default, each Linux system initially has one single namespace. All system resources,
+                such as filesystems, process IDs, user IDs, network interfaces, and others, belong to the
+                single namespace. But you can create additional namespaces and organize resources
+                across them. When running a process, you run it inside one of those namespaces. The
+                process will only see resources that are inside the same namespace. Well, multiple
+                kinds of namespaces exist, so a process doesn’t belong to one namespace, but to one
+                namespace of each kind.
+        </p>
+        <div>
+                The following kinds of namespaces exist:
+                <ul>
+                    <li>Mount (mnt)</li>
+                    <li>Process ID (pid)</li>
+                    <li>Network (net)</li>
+                    <li>Inter-process communication (ipc)</li>
+                    <li>UTS</li>
+                    <li>User ID (user)</li>
+                </ul>
+        </div>
+        <p>
+                Each namespace kind is used to isolate a certain group of resources. For example, the
+                UTS namespace determines what hostname and domain name the process running
+                inside that namespace sees. By assigning two different UTS namespaces to a pair of
+                processes, you can make them see different local hostnames. In other words, to the
+                two processes, it will appear as though they are running on two different machines (at
+                least as far as the hostname is concerned).
+        </p>
+        <p>
+                Likewise, what Network namespace a process belongs to determines which net-
+                work interfaces the application running inside the process sees. Each network inter-
+                face belongs to exactly one namespace, but can be moved from one namespace to
+                another. Each container uses its own Network namespace, and therefore each con-
+                tainer sees its own set of network interfaces.
+        </p>
+        <p>
+                This should give you a basic idea of how namespaces are used to isolate applica-
+                tions running in containers from each other.
+        </p>
+
+        <h3>
+                LIMITING RESOURCES AVAILABLE TO A PROCESS
+        </h3>
+        <p>
+                The other half of container isolation deals with limiting the amount of system
+                resources a container can consume. This is achieved with cgroups, a Linux kernel fea-
+                ture that limits the resource usage of a process (or a group of processes). A process
+                can’t use more than the configured amount of CPU, memory, network bandwidth, and so on. This way, processes cannot hog resources reserved for other processes,
+                which is similar to when each process runs on a separate machine.
+        </p>
+
+
+        <li><h2>Introducing the Docker container platform</h2></li>
+        <p>
+                While container technologies have been around for a long time, they’ve become
+                more widely known with the rise of the Docker container platform. Docker was the
+                first container system that made containers easily portable across different machines.
+                It simplified the process of packaging up not only the application but also all its
+                libraries and other dependencies, even the whole OS file system, into a simple, por-
+                table package that can be used to provision the application to any other machine
+                running Docker.
+        </p>
+        <p>
+                When you run an application packaged with Docker, it sees the exact filesystem
+                contents that you’ve bundled with it. It sees the same files whether it’s running on
+                your development machine or a production machine, even if it the production server
+                is running a completely different Linux OS. The application won’t see anything from
+                the server it’s running on, so it doesn’t matter if the server has a completely different
+                set of installed libraries compared to your development machine.
+        </p>
+        <p>
+                For example, if you’ve packaged up your application with the files of the whole
+                Red Hat Enterprise Linux (RHEL) operating system, the application will believe it’s
+                running inside RHEL, both when you run it on your development computer that runs
+                Fedora and when you run it on a server running Debian or some other Linux distribu-
+                tion. Only the kernel may be different.
+        </p>
+        <p>
+                This is similar to creating a VM image by installing an operating system into a VM,
+                installing the app inside it, and then distributing the whole VM image around and
+                running it. Docker achieves the same effect, but instead of using VMs to achieve app
+                isolation, it uses Linux container technologies mentioned in the previous section to
+                provide (almost) the same level of isolation that VMs do. Instead of using big mono-
+                lithic VM images, it uses container images, which are usually smaller.
+        </p>
+        <p>
+                A big difference between Docker-based container images and VM images is that
+                container images are composed of layers, which can be shared and reused across mul-
+                tiple images. This means only certain layers of an image need to be downloaded if the
+                other layers were already downloaded previously when running a different container
+                image that also contains the same layers.
+        </p>
+
+        <h3>UNDERSTANDING DOCKER CONCEPTS</h3>
+        <p>
+                Docker is a platform for packaging, distributing, and running applications. As we’ve
+                already stated, it allows you to package your application together with its whole envi-
+                ronment. This can be either a few libraries that the app requires or even all the files
+                that are usually available on the filesystem of an installed operating system. Docker
+                makes it possible to transfer this package to a central repository from which it can
+                then be transferred to any computer running Docker and executed there (for the
+                most part, but not always, as we’ll soon explain).
+        </p>
+        <div>
+                Three main concepts in Docker comprise this scenario:
+                <ul>
+                    <li>
+                            <i>Images</i>—A Docker-based container image is something you package your appli-
+                            cation and its environment into. It contains the filesystem that will be available
+                            to the application and other metadata, such as the path to the executable that
+                            should be executed when the image is run.
+                    </li>
+                    <li>
+                            <i>Registries</i>—A Docker Registry is a repository that stores your Docker images and
+                            facilitates easy sharing of those images between different people and comput-
+                            ers. When you build your image, you can either run it on the computer you’ve
+                            built it on, or you can push (upload) the image to a registry and then pull
+                            (download) it on another computer and run it there. Certain registries are pub-
+                            lic, allowing anyone to pull images from it, while others are private, only accessi-
+                            ble to certain people or machines.
+
+                    </li>
+                    <li>
+                            <i>Containers</i>—A Docker-based container is a regular Linux container created from
+                            a Docker-based container image. A running container is a process running on
+                            the host running Docker, but it’s completely isolated from both the host and all
+                            other processes running on it. The process is also resource-constrained, mean-
+                            ing it can only access and use the amount of resources (CPU, RAM, and so on)
+                            that are allocated to it.
+
+                    </li>
+                </ul>
+        </div>
+        <h3>
+                BUILDING , DISTRIBUTING , AND RUNNING A DOCKER IMAGE
+        </h3>
+        <p>
+                Figure 1.6 shows all three concepts and how they relate to each other. The developer
+                first builds an image and then pushes it to a registry. The image is thus available to
+                anyone who can access the registry. They can then pull the image to any other
+                machine running Docker and run the image. Docker creates an isolated container
+                based on the image and runs the binary executable specified as part of the image.
+        </p>
+
+        <figure>
+                <img/ src="" alt="Image to be put" title="Monolithic s Microserices based app">
+                <figcaption>Figure 1.6 Docker images, registries, and containers</figcaption>
+        </figure>
+
+        <h3>
+                COMPARING VIRTUAL MACHINES AND DOCKER CONTAINERS
+        </h3>
+        <p>
+                I’ve explained how Linux containers are generally like virtual machines, but much
+                more lightweight. Now let’s look at how Docker containers specifically compare to vir-
+                tual machines (and how Docker images compare to VM images). Figure 1.7 again shows
+                the same six applications running both in VMs and as Docker containers.
+        
+                <figure>
+                        <img/ src="" alt="Image to be put" title="Monolithic s Microserices based app">
+                        <figcaption>Figure 1.7 Running six apps on
+                                three VMs vs. running them in
+                                Docker containers</figcaption>
+
+
+                </figure>
+                
+                You’ll notice that apps A and B have access to the same binaries and libraries both
+                when running in a VM and when running as two separate containers. In the VM, this
+                is obvious, because both apps see the same filesystem (that of the VM). But we said
+                that each container has its own isolated filesystem. How can both app A and app B
+                share the same files?
+        </p>
+
+        <h3>UNDERSTANDING IMAGE LAYERS</h3>
+        <p>
+                I’ve already said that Docker images are composed of layers. Different images can con-
+                tain the exact same layers because every Docker image is built on top of another
+                image and two different images can both use the same parent image as their base.
+                This speeds up the distribution of images across the network, because layers that have
+                already been transferred as part of the first image don’t need to be transferred again
+                when transferring the other image.
+        </p>
+        <p>
+                But layers don’t only make distribution more efficient, they also help reduce the
+                storage footprint of images. Each layer is only stored once. Two containers created
+                from two images based on the same base layers can therefore read the same files, but
+                if one of them writes over those files, the other one doesn’t see those changes. There-
+                fore, even if they share files, they’re still isolated from each other. This works because
+                container image layers are read-only. When a container is run, a new writable layer is
+                created on top of the layers in the image. When the process in the container writes to
+                a file located in one of the underlying layers, a copy of the whole file is created in the
+                top-most layer and the process writes to the copy.
+        </p>
+
+        <h3>UNDERSTANDING THE PORTABILITY LIMITATIONS OF CONTAINER IMAGES</h3>
+        <p>
+                In theory, a container image can be run on any Linux machine running Docker, but
+                one small caveat exists—one related to the fact that all containers running on a host use
+                the host’s Linux kernel. If a containerized application requires a specific kernel version,
+                it may not work on every machine. If a machine runs a different version of the Linux
+                kernel or doesn’t have the same kernel modules available, the app can’t run on it.
+        </p>
+        <p>
+                While containers are much more lightweight compared to VMs, they impose cer-
+                tain constraints on the apps running inside them. VMs have no such constraints,
+                because each VM runs its own kernel.
+        </p>
+        <p>
+                And it’s not only about the kernel. It should also be clear that a containerized app
+                built for a specific hardware architecture can only run on other machines that have
+                the same architecture. You can’t containerize an application built for the x86 architec-
+                ture and expect it to run on an ARM-based machine because it also runs Docker. You
+                still need a VM for that.
+        </p>
+
+        <li><h2>Introducing rkt—an alternative to Docker</h2></li>
+        <p>
+                Docker was the first container platform that made containers mainstream. I hope I’ve
+                made it clear that Docker itself doesn’t provide process isolation. The actual isolation
+                of containers is done at the Linux kernel level using kernel features such as Linux
+                Namespaces and cgroups. Docker only makes it easy to use those features.
+        </p>
+        <p>
+                After the success of Docker, the Open Container Initiative (OCI) was born to cre-
+                ate open industry standards around container formats and runtime. Docker is part
+                of that initiative, as is rkt (pronounced “rock-it”), which is another Linux container
+                engine.
+        </p>
+        <p>
+                Like Docker, rkt is a platform for running containers. It puts a strong emphasis on
+                security, composability, and conforming to open standards. It uses the OCI container
+                image format and can even run regular Docker container images.
+        </p>
+        <p>
+                This book focuses on using Docker as the container runtime for Kubernetes,
+                because it was initially the only one supported by Kubernetes. Recently, Kubernetes
+                has also started supporting rkt, as well as others, as the container runtime.
+        </p>
+        <p>
+                The reason I mention rkt at this point is so you don’t make the mistake of thinking
+                Kubernetes is a container orchestration system made specifically for Docker-based
+                containers. In fact, over the course of this book, you’ll realize that the essence of
+                Kubernetes isn’t orchestrating containers. It’s much more. Containers happen to be
+                the best way to run apps on different cluster nodes. With that in mind, let’s finally dive
+                into the core of what this book is all about—Kubernetes.
+        </p>
+    </body>
+</html>

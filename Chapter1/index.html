@@ -1,0 +1,79 @@
+<html>
+    <head>
+        <title></title>
+    </head>
+    <body>
+        <h1>Introducing Kubernetes</h1>
+        <div>
+            <h4>This chapter covers</h4>
+            <ul>
+                <li>Understanding how software development and
+                    deployment has changed over recent years</li>
+                <li>Isolating applications and reducing environment
+                    differences using containers</li>
+                <li>Understanding how containers and Docker are
+                    used by Kubernetes</li>
+                <li>Making developers’ and sysadmins’ jobs easier
+                    with Kubernetes</li>
+            </ul>
+        </div>
+        <p>
+            Years ago, most software applications were big monoliths, running either as a single
+            process or as a small number of processes spread across a handful of servers. These
+            legacy systems are still widespread today. They have slow release cycles and are
+            updated relatively infrequently. At the end of every release cycle, developers pack-
+            age up the whole system and hand it over to the ops team, who then deploys and
+            monitors it. In case of hardware failures, the ops team manually migrates it to the
+            remaining healthy servers.
+        </p>
+        <p>
+            Today, these big monolithic legacy applications are slowly being broken down
+            into smaller, independently running components called microservices. Because microservices are decoupled from each other, they can be developed, deployed, updated,
+            and scaled individually. This enables you to change components quickly and as often as
+            necessary to keep up with today’s rapidly changing business requirements.
+        </p>
+        <p>
+            But with bigger numbers of deployable components and increasingly larger data-
+            centers, it becomes increasingly difficult to configure, manage, and keep the whole
+            system running smoothly. It’s much harder to figure out where to put each of those
+            components to achieve high resource utilization and thereby keep the hardware costs
+            down. Doing all this manually is hard work. We need automation, which includes
+            automatic scheduling of those components to our servers, automatic configuration,
+            supervision, and failure-handling. This is where Kubernetes comes in.
+        </p>
+        <p> Kubernetes enables developers to deploy their applications themselves and as
+            often as they want, without requiring any assistance from the operations (ops) team.
+            But Kubernetes doesn’t benefit only developers. It also helps the ops team by automat-
+            ically monitoring and rescheduling those apps in the event of a hardware failure. The
+            focus for system administrators (sysadmins) shifts from supervising individual apps to
+            mostly supervising and managing Kubernetes and the rest of the infrastructure, while
+            Kubernetes itself takes care of the apps.
+        </p>
+        <div>NOTE Kubernetes is Greek for pilot or helmsman (the person holding the
+            ship’s steering wheel). People pronounce Kubernetes in a few different ways.
+            Many pronounce it as Koo-ber-nay-tace, while others pronounce it more like
+            Koo-ber-netties. No matter which form you use, people will understand what
+            you mean.
+        </div>
+        <p> Kubernetes abstracts away the hardware infrastructure and exposes your whole data-
+            center as a single enormous computational resource. It allows you to deploy and run
+            your software components without having to know about the actual servers under-
+            neath. When deploying a multi-component application through Kubernetes, it selects
+            a server for each component, deploys it, and enables it to easily find and communi-
+            cate with all the other components of your application.
+        </p>
+        <p>
+            This makes Kubernetes great for most on-premises datacenters, but where it starts
+            to shine is when it’s used in the largest datacenters, such as the ones built and oper-
+            ated by cloud providers. Kubernetes allows them to offer developers a simple platform
+            for deploying and running any type of application, while not requiring the cloud pro-
+            vider’s own sysadmins to know anything about the tens of thousands of apps running
+            on their hardware.
+        </p>
+        <p>
+            With more and more big companies accepting the Kubernetes model as the best
+            way to run apps, it’s becoming the standard way of running distributed apps both in
+            the cloud, as well as on local on-premises infrastructure.
+        </p>
+    </body>
+</html>
